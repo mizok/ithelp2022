@@ -28,16 +28,21 @@
 
  `Three.js`的**平移**，有2種比較常見的方式。
 
- 其中一種是我們在前面的**Hello World**也用過的`Object3D.position`。
+ 其中一種是我們在前面的**Hello World**也用過的`Mesh.position`。
 
- `Object3D.position`本身的型別是`Vector3`，也就是**三維向量物件**，所以理所當然的，我們可以用上面介紹過的各種方法，比方說**四則運算**。
+ `Mesh.position`本身的型別是`Vector3`，也就是**三維向量物件**，所以理所當然的，我們可以用上面介紹過的各種方法，比方說**四則運算**來定義物體的位置。
 
- 第二種則是只有`Geometry`類才可以使用的`translate`方法
+ 第二種則是只有`Geometry`類才可以使用的`translate`方法。
+ 
+ 假設我們把`mesh`比喻成一個3D物件的"外層"，`Geometry`則是它的"內層"，當`Geometry`被下了`translate`時，它其實不會影響到`Mesh`的`position`屬性。
 
+ 關於`Geometry.translate`有一點要注意的就是它是一種`one-time-operation`，意思就是說它只能在生成`Mesh`之前被操作一次，`renderer`在render的時候並不會去偵測`Geometry.translate`的改變。
  ### 縮放(scale)
 
+`縮放`其實跟**平移**差不多，有`Mesh.scale`也有`Geometry.scale`(`Geometry.scale`也同樣是`one-time-operation`)，這邊就不描述太多。
  ### 旋轉(rotate)
 
+ 旋轉其實是形變中最複雜的一個部分，為什麼說它複雜?
 ## 群組
 
 ## 動畫循環
