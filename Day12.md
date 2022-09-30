@@ -1,6 +1,6 @@
-# Day11 - 「紋理&種類」- Material解密(二)  
+# Day12 - 「紋理&種類」- Material解密(二)  
 
-> 這裡是「Three.js學習日誌」的第11篇，本篇的主旨是要介紹紋理的種類，這系列的文章假設讀者看得懂javascript，並且有Canvas 2D Context的相關知識。
+> 這裡是「Three.js學習日誌」的第12篇，本篇的主旨是要介紹紋理的種類，這系列的文章假設讀者看得懂javascript，並且有Canvas 2D Context的相關知識。
 
 我們在上一回提到了如何在`Three.js`使用`Texture`(紋理)，而我們今天是要來講講`Texture`(紋理)的種類。
 
