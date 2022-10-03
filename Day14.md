@@ -1,143 +1,196 @@
-# Day13 - 「紋理&種類」- Material解密(三)  
+# Day14 - 金屬球範例試作(1) - Material解密(四)  
 
-> 這裡是「Three.js學習日誌」的第13篇，本篇的主旨是要介紹紋理的種類，這系列的文章假設讀者看得懂javascript，並且有Canvas 2D Context的相關知識。
+> 這裡是「Three.js學習日誌」的第14篇，本篇的主旨是要透過一個簡單的範例操作，來一步一步介紹材質與渲染的關係，這系列的文章假設讀者看得懂javascript，並且有Canvas 2D Context的相關知識。
 
-今天主要是要來把昨天沒有介紹完的紋理補完~事不宜遲，就讓我們開始吧!
+到目前為止的系列文中，我們基本上只有使用過`MeshStandardMaterial`還有`MeshBasicMaterial`。所以接下來的2天我打算透過試做一個簡單的小場景，來學習材質的運用。
 
-## **Ambient Occulusion Map** (環境光遮蔽紋理)
+## 試著做一個放置在金屬面上的金屬球
 
-### 1. 什麼是環境光?
+這次我們先從一個只有`camera`的`Scene`開始。
 
-在介紹這種紋理之前，其實應該要先理解什麼叫做**環境光**(Ambient Light)。
+> 為了節省篇幅，初始化的環節也是先略過了。
 
-在3D渲染的領域中，光源其實有很多種，而**環境光**就是其中之一。
+### 1. 先把球&平面都置入Scene當中
 
-**環境光**顧名思義就是從環境<u>四面八方均勻射在</u>物體上的光。
-
-在正常狀況下我們假設不管觀察者在哪裡，從物體上面接收到的環境光反射都是一樣的。
-
-這邊我們用一個簡單的**Demo**來解釋一下。
-
-![img](https://i.imgur.com/keCffwh.gif)
-
-> codepen連結:[點我](https://codepen.io/mizok/pen/jOxzOyd)
-
-
-這個Scene裡面放置了:
-
-- 一個**環境光**(Ambient Light)實例。
-- 一個由`BoxGeometry`搭配**紅色**`MeshStandardMaterial`建立出來的方塊`Mesh`。
-- 一個`Camera`
-
-我讓**方塊**隨著時間旋轉，且讓**環境光**的強度隨時間忽高忽低的波動。
-
-我們可以注意到，這個**方塊**不管轉到什麼角度，還有**環境光**的強度如何，方塊的面上都是呈現同一個顏色。
-
-這個就是我們剛剛提到的:
-
+``` javascript
+const geo = new SphereGeometry(1, 100, 100);
+const planeGeo = new PlaneGeometry(20, 20, 20, 20);
+const mat1 = new MeshStandardMaterial({color:new Color('#eee')});
+const mat2 = new MeshStandardMaterial({color:new Color('#eee')});
+const mesh = new Mesh(geo, mat1);
+const planeMesh = new Mesh(planeGeo, mat2);
+scene.add(mesh, planeMesh);
 ```
-不管觀察者在哪裡，從物體上面接收到的環境光反射都是一樣的。
-```
+> 當然這時候還是黑一片，因為沒有光源
 
-我們其實可以把**環境光**想像成把物體浸泡在一個光子構成的海洋，沒有任何一處會特別的暗或是特別的亮。
-
-
-> 當然這個前提是建立在方塊的六個面都是一樣的材質，具有同等的反射率/漫反射率等等。
-
-
-### 2. 環境光遮蔽又是什麼?
-
-從上面的介紹看來，**環境光**(Ambient Light)其實就是均勻的把光打在物體的任何一個面上。但在真實環境中，「環境光會均勻的射到物體上」這件事其實有點過於理想化。
-
-舉個簡單的例子，像是一個中空的圓管。如果我們按照剛剛的解釋，圓管內部應該是要能夠呈現跟外部一樣顏色的。
-
-但現實就不是這麼一回事，大多數狀況圓管內部應該是較暗才對。
-
-也許你會覺得疑問: 但3D模型不是有`normal attribute`和`normal map`嗎?它們不就是用來決定面與光互動的狀況用的嗎?
-
-對，但是就跟我們前面講的一樣，**環境光**不會受到角度，也就是`normal`的影響。
-
-所以在這種情況下，我們會需要有另外一種**手段**，來<u>限制</u>物體上每一處「接收環境光的能力」。
-
-而這就是**Ambient Occulusion Map** (環境光遮蔽紋理)的用途。
-
-![img](https://i.imgur.com/QHhxERT.jpg)
-
->AOMap on v.s off 的差異
-
-
-### three.js 的環境光遮蔽紋理
-
-> 老樣子，作法大同小異
+### 2. 來點光
 
 ```javascript
-  const tl = new TextureLoader();
-  const aoTexture = tl.load('../img/ao.png'); 
-  
-
-  const mat  = new MeshStandardMaterial({
-     aoMap:aoTexture
-  })
+const pl = new PointLight(0xffffff, 1);
+pl.position.set(3, 3, 3);
+scene.add(pl);
 ```
+![img](https://i.imgur.com/6aR4Boq.jpg)
 
-## **Roughness Map** (粗糙紋理)
 
-**Roughness Map** (粗糙紋理)其實和**Metallic Map** (金屬化紋理)是很像的東西，但是**金屬化紋理**主要影響的是表面的**反射率**，而**粗糙紋理**則是決定表面的**漫反射率**。
+### 3. 旋轉平面，調整球的位置
 
-在`Three.js`的`MeshStandardMaterial`底下，其實有一個屬性叫做`roughness`，這邊我們可以看看下圖來了解`roughness`的用途。
+因為`PlaneGeometry`在一開始建立的時候會是直立的(而不是橫躺)，所以這邊我們必須要來點旋轉。
 
-![img](https://i.imgur.com/J11hyz8.jpg)
+這邊我們可以直接使用`Object3D.lookAt`，這個方法其實就跟字面上的意思一樣，可以讓`Object3D`物件「看」向某個目標座標。這邊我們讓平面朝向(0,1,0)，也就是說面會朝上。
 
-> 左邊是`roughness`為0的狀況，中間則是具有高`roughness`的情形
-
-看過上圖其實大概就可以了解，`roughness`會使物體表面光源漫射率增加，接連導致表面的**霧化**。
-
-而**Roughness Map** (粗糙紋理)的用途，其實就是去標記物體表面漫射率高的地方(顏色越深漫射率越高)。
-
-### three.js 的粗糙紋理
+然後再稍微調整一下球的位置到(0,1,0)，讓它剛好落在平面上(半徑是1)
 
 ```javascript
-  const tl = new TextureLoader();
-  const roughnessTexture = tl.load('../img/roughness.png'); 
-  
-  const mat  = new MeshStandardMaterial({
-     roughnessMap:roughnessTexture
-  })
+planeMesh.lookAt(0,1,0);
+mesh.position.set(0,1,0);
 ```
 
-
-## **Alpha Map** (透明紋理)
-
-最後一個是*Alpha Map** (透明紋理)。
-
-其實我們之前講到透明度的時候有稍微提到一下，**Alpha Map** (透明紋理)其實顧名思義就是紋理透明區塊的**Mapping**
-
-![img](https://i.imgur.com/VUZ6IDb.png)
-
-> 透明紋理會讓光線直接穿越過去，而不會反射。
-
-![img](https://i.imgur.com/BtbSRDN.jpg)
-
-> 白色的部分會保持不透明，黑色的部分會挖空
+![img](https://i.imgur.com/KQyVknf.jpg)
 
 
-### three.js 的透明紋理
+### 4. 使用 OrbitControl
+
+這邊我們又要來超前一下進度了。
+
+因為現在平面是完全垂直於我們的螢幕，所以看起來像一條線。
+
+但這樣實在太無趣，所以我們要給他來點**可控性**。
+
+`OrbitControl`就是`環形攝影機軌道`的意思，`Three.js`有提供這樣的機能讓我們可以用滑鼠直接操作`camera`，讓我們可以從不同的角度去觀察我們渲染的Scene。
+
+作法很簡單，首先我們要先建立`OrbitControl`的實例，接著把`camera`和`renderer.domElement`當作參數傳入。
+
+這邊因為`cdn.skypack.dev`的`Three.js` Package沒有提供`OrbitControl`的Module，所以我們必須要引用別的Package。
+
+> 正常來講`Three.js` 的npm package底下是可以找到`OrbitControl`的，我們之後會再提到。
+
+
+``` javascript
+import threeTsOrbitControls from 'https://cdn.skypack.dev/@three-ts/orbit-controls';
+
+const controls = new threeTsOrbitControls.OrbitControls(camera, renderer.domElement)
+
+```
+
+接著我們得在tick loop(也就是`requestAnimationFrame`的迴圈)裡面呼叫`Controls.update`
 
 ```javascript
-  const tl = new TextureLoader();
-  const alphaTexture = tl.load('../img/alpha.png'); 
-  
-  const mat  = new MeshStandardMaterial({
-     alphaMap:alphaTexture
-  })
+ let time = 0;
+  const loop = (time) => {
+    mesh.rotation.y = time / 1000;
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame((time) => {
+      loop(time);
+    });
+  };
+
+  loop();
 ```
 
+>這樣就可以動手旋轉畫面了。
 
-## 小結
+![img](https://i.imgur.com/Qfi50nK.gif)
 
-今天我們講完了**PBR**材質的6種常見紋理，接著我們即將要進入`Material`的部分，再敬請各位期待~
+最後我們可以調整一下`camera`的位置，讓畫面不要看起來這麼無趣。
 
-## 延伸閱讀
+這邊其實有個小撇步，假如我在利用`OrbitControls`旋轉角度，感覺有某個角度特別中意的話，我們其實可以把`camera`暴露為全域物件。
 
--[https://zh.wikipedia.org/zh-tw/%E7%8E%AF%E5%A2%83%E5%85%89%E9%81%AE%E8%94%BD](https://zh.wikipedia.org/zh-tw/%E7%8E%AF%E5%A2%83%E5%85%89%E9%81%AE%E8%94%BD)
+``` javascript
+ window.cm = camera;
+```
 
+這樣我們就可以先使用`OrbitControls`把畫面轉到我們喜歡的位置，然後用開發者工具印出來`camera`目前的位置，接著再把這些數據紀錄到程式裡面。
+
+![img](https://i.imgur.com/TJU2EhP.jpg)
+
+```javascript
+camera.position.set(0.8182387794884614,3.0688847649716244,3.8616617665282886)
+```
+
+> 這樣攝影機就會以我們中意的位置作為初始狀態來呈現了~
+
+
+### 5. 調整金屬化/粗糙度參數，然後調整一下光照
+
+馬上來試玩一下~上一篇介紹的**金屬化/粗糙度**，這兩個屬性可以讓我們調整`Material`的反射率/漫反射率。
+
+``` javascript
+const mat1 = new MeshStandardMaterial({
+    color: new Color("#eee"),
+    metalness: 0.5,
+    roughness: 0.3
+});
+const mat2 = new MeshStandardMaterial({
+    color: new Color("#eee"),
+    metalness: 0.2,
+    roughness: 0.8
+});
+const mesh = new Mesh(geo, mat1);
+const planeMesh = new Mesh(planeGeo, mat2);
+...
+const al = new AmbientLight(0xffffff, 1); //補一個環境光
+const pl = new PointLight(0xffffff, 0.3); //減弱點光源的強度
+scene.add(al);
+```
+
+![img](https://i.imgur.com/AI510uQ.jpg)
+
+
+### 6. 動態渲染陰影
+
+接著又是要來超前進度啦~
+
+做到這邊為止雖然好像有越來越像一回事(?)
+
+但各位大概會發現球有時感覺像是飄在空中的。
+
+這是因為我們缺乏了**陰影**
+
+
+在`Three.js`中，如果我們想要透過現有的光源來運算物體實時的陰影，那首先我們會需要做兩件事。
+
+- **光源**&**會造成陰影的物體**必須要設定`castShadow`
+
+- 上面會產生陰影的物體材質必須要設定`receiveShadow`
+
+所以這邊我們必須給`PointLight`和**球**設定`castShadow`，並且給**平面**設定`receiveShadow`。
+
+```javascript
+mesh.castShadow = true;
+...
+planeMesh.receiveShadow = true;
+...
+pl.castShadow = true;
+```
+
+設定完`castShadow`/`receiveShadow`之後，接著則是要打開`renderer`的`shadowMap`設置，並且把`shadow type` 改為`PCFSoftShadowMap`
+
+```javascript
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = PCFSoftShadowMap // PCFSoftShadowMap記得要從module import
+```
+
+![img](https://i.imgur.com/fvYPBcT.jpg)
+
+> 這樣就有影子了~
+
+但是在這邊我們可以注意到，陰影的邊緣似乎有點瑕疵。
+
+這個問題發生的原因其實是因為燈光的`shadow map`解析度不夠，所以我們要再調整一下。
+
+```javascript
+pl.shadow.mapSize.width = 2048;
+pl.shadow.mapSize.height = 2048;
+```
+
+![img](https://i.imgur.com/pTkCulT.jpg)
+
+> Perfect Shadow !
+
+
+
+# 小結 
+
+到這邊我們已經做出來一個簡單的小場景，明天我們會繼續用這個範例來介紹**環境貼圖**和一些我們目前尚未使用過的**材質**。
