@@ -1,4 +1,4 @@
-# Day25 - 打造質感系3D聊天室- 部屬Websocket專案到Fly.io - three.js + socket.io(四)
+# Day26 - 打造質感系3D聊天室- 部屬Websocket專案到Fly.io - three.js + socket.io(四)
 
 > 這裡是「Three.js學習日誌」的第26篇，這篇是在講解如何部屬`Websocket`專案到Fly.io。這系列的文章假設讀者看得懂javascript，並且有Canvas 2D Context的相關知識。
 
