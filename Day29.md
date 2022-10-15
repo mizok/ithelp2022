@@ -453,7 +453,155 @@ blender的材質有各式各樣的參數，其中當然也有我們熟悉的**Me
 - 上半部就是即時顯示紋理生成在模型上的狀況
 - 下半部我們把它稱為**node-editor**，也就是**節點式的紋理編輯器**
 
-我們接著會在這邊透過實作出由噪聲所生成的材質紋理。
+我們接著會在這邊透過實作出由噪聲所生成的材質貼圖。
 
-### 2-13. 在blender裡面生成紋理貼圖
+### 2-13. 使用**node-editor**來生成基於噪聲(Noise)的材質貼圖
 
+首先這邊先介紹一下**node-editor**的使用方式。
+
+在**node-editor**中，我們可以看到很多的面板，這些面板也就是我們所謂的**節點**。
+
+
+![img](https://i.imgur.com/RxpHGP3.jpg)
+
+
+- **節點**和**節點**之間的連線，可以透過滑鼠左鍵去**點擊=>拖拉=>連接**。
+
+- 按下**Ctrl + 滑鼠右鍵**拖曳，就可以切斷路徑上的節點連線。
+
+- 按下滑鼠中鍵，可以平移拖曳畫面
+
+- 按下**shift+A**，可以決定要加入什麼樣的**節點**。
+
+- 這些連線和節點會決定最後輸出的紋理結果。
+
+> 筆者個人認為節點式渲染的原理應該是有點類似函數的Input/Output，把函數的Output傳給某個函數作為Input的概念，不過目前還沒有驗證過這個推論是不是正確的。
+
+![img](https://i.imgur.com/ErekE85.jpg)
+
+在這邊筆者是採用上述的節點連結還有參數，即可生成如下的紋理。
+
+![img](https://i.imgur.com/ddnutNZ.jpg)
+
+> 這邊節點的運用建議可以多看看[ep7](https://youtu.be/CmrAv8TSAao)影片中的介紹，不過筆者自己認為這種節點式的運算方法如果要達到可以自由運用，可能要經過多次練習，並且要熟悉每個節點的使用情境。
+
+
+### 2-13. 繪製基底紋理
+
+我們其實可以發現，在前面的**node-editor**中我們做到的，其實有點類似`three.js`中**Height map**、**color**、**Normal map**等多種屬性疊加起來的綜合結果。
+
+而在`three.js`中，我們平常還可以加上`map`這一個屬性，也就是作為基底的**紋理**。
+
+這邊我們要展示的就是要如何使用**blender**來生成**基底紋理**。
+
+首先我們得要先把剛剛的**Shading**功能頁面中的**color ramp**這個**節點**刪除。並新增一個**image texture**的節點。
+
+![img](https://i.imgur.com/mOuAeiw.jpg)
+
+並點擊**image texture**上面的**New**按鈕，新增一張512*512大小，底色與原本**Torus**底色相近的的基底紋理，並取名為**base map**。
+
+接著紋理的預覽畫面應該會變成像這樣。
+
+![img](https://i.imgur.com/3PD22Rc.jpg)
+
+
+接著再切換到 **Texture Paint**這個功能頁面。
+
+![img](https://i.imgur.com/syercwd.jpg)
+
+
+**Texture Paint**顧名思義就是**紋理繪製**，它除了可以繪製基底紋理以外，當然也是可以繪製例如**Metallic map**、**Height map**等其他類型的紋理。
+
+> 只要你能畫得出來的話。
+
+
+這邊我們可以直接把白色的區塊塗在模型中間凹槽的地方。
+
+> 如果發現突然不能直接在模型上塗色，切回去shading再切回來texture painting就可以了。
+
+![img](https://i.imgur.com/sGg0qN9.jpg)
+
+接著畫完要記得存檔。
+
+>點擊畫面左上角有寫著一個小"image"的地方，並選擇"save as"，blender會直接以你剛剛在image-texture節點上命名的名字來為這個材質命名。
+
+![img](https://i.imgur.com/Bqz5Pto.jpg)
+
+
+接著我們再回到**shading**功能面板，會發現紋理預覽上面已經出現我們剛剛繪製的**基底紋理**了~
+
+![img](https://i.imgur.com/X4IRRd7.jpg)
+
+
+這邊我們再稍微調整一下**node editor**的參數，並加入一個「mixRGB」的節點，然後把這個節點上提供的混和模式選項改為Overlay。
+
+![img](https://i.imgur.com/1BBPdr7.jpg)
+
+最後回到**modeling**功能頁面，解除**糖衣**和**平面**的隱藏~就得到了下圖的結果
+
+![img](https://i.imgur.com/EFkG7DS.jpg)
+
+>有沒有變得越來越像一回事了XD~?
+
+> 這邊的詳細操作可以看 [ep8](https://youtu.be/_LeTDpNrdbg)
+
+### 2-14. 使用Geometry node 給糖衣撒上糖粒(Sprinkles)
+
+接著我們要為這糖衣的部分撒上糖粒。
+
+要使用**Geometry nodes**這個功能。
+
+**Geometry nodes** 顧名思義也是一種**節點編輯器**，但是他和我們剛剛使用的**shading**功能面板不同，是可以直接生成**Geometry的**。
+
+
+這邊首先先打開**Geometry nodes**面板，然後**選擇糖衣**，接著按一下下圖中紅圈的**NEW**
+
+![img](https://i.imgur.com/nuIcRRL.jpg)
+
+所謂的**Geometry nodes**，其實基本上算是一種**modifier**(修改器)，我們透過這種**modifier**可以給原有的**Geometry**生成新的內容，而且這些內容可以透過組合不同的節點來決定。
+
+通常**Geometry nodes**會被應用在需要產生具有規律的群體物件上(ex:大樓群、課桌椅)，又或者是透過隨機seed來產生隨機分布的**Geometry**(有點像**粒子系統**的概念)。
+
+這邊我們透過剛剛的操作，已經為**糖衣**的部分掛上了一個**Geometry nodes**的**修改器**。
+
+![img](https://i.imgur.com/pLqHPi1.jpg)
+
+
+> 接下來的部份其實強烈建議要看過Blender guru本人的操作，在[ep9](https://youtu.be/4WAxMI1QJMQ)
+
+
+接著我們給節點編輯器加上
+
+- **Join geometry**
+
+- **Distribute Points on Face** 
+
+- **instance on points**
+
+這三個**節點**，
+
+![img](https://i.imgur.com/t60nHdy.jpg)
+
+然後建立一個**Cylinder**(圓柱狀)的**物體**(記得寬高要先設定好)，然後把這個**Cylinder**，從物件列表**拖曳**進去**節點編輯器**。
+
+![img](https://i.imgur.com/NGTmQyM.jpg)
+![img](https://i.imgur.com/zC0gfuC.jpg)
+![img](https://i.imgur.com/eIXiyC7.jpg)
+
+我們接著把拖進來的**Cylinder**節點，和其餘三個節點像下圖一樣去做連結。
+
+![img](https://i.imgur.com/ulCEdWx.jpg)
+
+接著就會發現在**糖衣**的上面出現了兩根一樣的**Cylinder**。
+
+![img](https://i.imgur.com/pgjQ0gY.jpg)
+
+> 其實做到這邊應該差不多可以看懂接下來大概要幹甚麼了。
+
+接下來我們點選剛剛的**Cylinder**物件(不是**節點**哦~)，然後輸入「rx90」讓他以**X軸**旋轉**90度**，並且把**Distribute Points on Face** 的**density**屬性提高。
+
+> 形變完要記得「Apply」不然**Geometry nodes**不會有效果。
+
+![img](https://i.imgur.com/6W2cqwj.jpg)
+
+再來我們把**Distribute Points on Face** 的**Rotation**屬性和**instance on points**的**Rotation**屬性對連
