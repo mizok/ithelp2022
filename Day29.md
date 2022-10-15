@@ -285,9 +285,9 @@
 > 這邊其實就是按照個人的感覺去選擇工具來使用就好，沒有什麼特別的步驟。
 
 > 這邊的操作細節可以看[ep5](https://www.youtube.com/watch?v=G_OrMDOK-Og)
-### 2-10 開始上色囉~
+### 2-10 開始處理渲染環節囉~
 
-在開始上色之前，**第一步**我們先來把攝影機調整到適當的位置。
+在開始渲染之前，**第一步**我們先來把攝影機調整到適當的位置。
 
 當然在這邊我們可以直接手動調整攝影機的位置~ 但Blender guru這邊有提供一個比較簡單的方法，也就是「Camera to View」。
 
@@ -333,5 +333,127 @@
 
 另外，「**cycles**」在渲染的時候通常會出現下圖的狀況，也就是圖像是一點一點地被算出來，跟我們習慣的`three.js`實時渲染不同~
 
+>「**cycles**」的渲染速度會和顯卡/CPU的等級呈正相關，所以做3D動畫渲染一般會需要較好的顯卡。
+
 
 ![img](https://i.imgur.com/MFNfgKh.jpg)
+
+
+> 接下來我們會先focus在「**eevee**」的使用，畢竟我們的目標是要把甜甜圈給丟到網頁前端做渲染。
+
+科普講解差不多先到這邊~
+
+接下來我們在場景裡面加入一個平面(Plane)。
+
+![img](https://i.imgur.com/5rcvjS4.jpg)
+
+> 這邊我在開場的時候不小心忘記先把Torus往上拉一點點XD，所以這裡甜甜圈會卡在平面上。
+
+我們把**Torus**和糖衣一起往上拉。
+
+> 可以搭配Numpad0使用，這樣比較好確認是不是剛好拖到平面上，當然拖曳形變做完要記的「**Apply**」!
+
+> 假如發現拖不動的話，記得檢查一下是不是你的**磁性吸附**(snap)還開著沒關XD
+
+接著我先把光源拉的離**甜甜圈&平面**近一點，且把光源強度下修到100W，這樣就可以看到陰影出現在平面上。
+
+![img](https://i.imgur.com/McWcgrh.jpg)
+
+![img](https://i.imgur.com/CgrvF4q.jpg)
+
+再來我調整了一下相機的**焦距參數**。
+
+![img](https://i.imgur.com/sRRD5Rz.jpg)
+
+接著我們可以看到因為現在陰影看起來破破的(Ragged)，原因其實就跟我們之前在`three.js`裡面發生過的一樣。也就是「**shadowmap**」的解析度不夠。
+
+這邊我們可以調整**eevee**的**shadow**相關設置。
+
+![img](https://i.imgur.com/R2z9nMK.jpg)
+
+再調整一下光源的**Shadow**屬性。
+
+![img](https://i.imgur.com/rrimgbK.jpg)
+
+>算是好多了。
+
+然後我們可以按下`F12`來看一下渲染的結果。
+
+![img](https://i.imgur.com/2sCOR5D.jpg)
+
+> 有興趣的話也可以試試切換到cycles來看看渲染的狀況唷~
+
+> 這邊的操作細節可以看ep6的[10:25](https://youtu.be/_WRUW_fs1g8?t=625)。
+
+### 2-11. 上材質囉~
+
+![img](https://i.imgur.com/k3MCtNT.jpg)
+
+首先我們先分別點選**糖衣**、**Torus**、**平面**，然後再點選右側邊欄的**材質頁籤**(Material Properties)，來給這三個部分填上不同的**材質**。
+
+|![img](https://i.imgur.com/Ys5RraO.jpg)|![img](https://i.imgur.com/a9q200n.jpg)|
+|---|---|
+
+> 通常材質的選色會比較吃建模師對顏色的敏感度，平常可以多練習這部分的直覺。
+
+blender的材質有各式各樣的參數，其中當然也有我們熟悉的**Metallic**、**Roughness**，這邊我們可以稍微調整一下**糖衣**的**Metallic**、**Roughness**，讓它變得比較能夠反射光源。
+
+![img](https://i.imgur.com/E1HOqFt.jpg)
+
+
+這邊我們再介紹一個有趣的屬性: **Subsurface**，這是一個可以改變**材質透光率**的屬性，將這個數值提高可以帶來類似**果凍**的質感，這邊我們大概給個`0.01`~`0.02`就有明顯的不同了。
+
+
+![img](https://i.imgur.com/FJV4DXe.jpg)
+
+
+接下來我們要往下一個階段邁進了~
+
+> 在這個部分Blender guru會講比較多關於Cycles渲染的細節，大部分我是略過了，如果有興趣的話可以從ep6的[15:51](https://youtu.be/_WRUW_fs1g8?t=951)看起。
+
+
+### 2-12. 在blender裡面生成紋理貼圖
+
+大部分的甜甜圈，在中間的凹槽，顏色是比較白的。
+
+|![img](https://i.imgur.com/LFxF1Ml.jpg) |![img](https://i.imgur.com/jKBhBX2.jpg)|
+|---|---|
+
+但在我們的甜甜圈上面卻沒有這一圈**白色**的痕跡，而且本體顏色看起來也有點太乾淨。所以我們這邊其實需要一種方法來實作**比較寫實的甜甜圈**。
+
+首先我們先隱藏**糖衣**和**平面**(點選之後按下**h**)，或是也可以點選該物件的**眼睛**圖標。
+
+![img](https://i.imgur.com/q8AQ3nz.jpg)
+
+![img](https://i.imgur.com/WHNufk0.jpg)
+
+接下來我們打開**Shading**這個功能頁面。
+
+![img](https://i.imgur.com/6Zt4oT7.jpg)
+
+> 視角的縮放可能會需要調整一下。
+
+
+**Shading**功能頁面其實就是讓使用者可以用**節點式**的操作方法，來自定義一個**shader**材質的Feature。
+
+其實這個功能就類似於`three.js`的`ShaderMaterial`。
+
+但很可惜我們在這次的賽程沒有時間可以講到`ShaderMaterial`，所謂的`ShaderMaterial`是一種運用`Shader`腳本，直接生成材質貼圖的方法，它的用法非常廣泛，裡面牽涉到的Know-how也非常的複雜。
+
+> 如果鐵人賽可以開一個組別是能夠自由決定能夠寫幾天的就好了QQ，30天For three.js真的略短。
+
+> 延伸閱讀: [three.js官方文件上ShaderMaterial的頁面](https://threejs.org/docs/#api/en/materials/ShaderMaterial)
+
+
+接著我們先來看看**Shading**功能頁面都有些甚麼東西。
+
+
+![img](https://i.imgur.com/ZQe8h5f.jpg)
+
+- 上半部就是即時顯示紋理生成在模型上的狀況
+- 下半部我們把它稱為**node-editor**，也就是**節點式的紋理編輯器**
+
+我們接著會在這邊透過實作出由噪聲所生成的材質紋理。
+
+### 2-13. 在blender裡面生成紋理貼圖
+
